@@ -319,7 +319,7 @@ ol.d {list-style-type:lower-alpha;}
 			rule.set("width", new CSSName("100%"));
 			selector=getStylesheet().getSimpleSelector(null, "table");
 			rule= getStylesheet().getRuleForSelector(
-					 selector, true);e
+					 selector, true);
 			rule.set("border-collapse", new CSSName("collapse"));
 			selector=getStylesheet().getSimpleSelector(null, "td");
 			rule= getStylesheet().getRuleForSelector(
