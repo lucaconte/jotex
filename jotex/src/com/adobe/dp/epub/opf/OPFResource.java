@@ -56,11 +56,11 @@ import com.adobe.dp.xml.util.XMLSerializer;
 
 public class OPFResource extends Resource {
 
-	static final String opfns = "http://www.idpf.org/2007/opf";
+	public static final String opfns = "http://www.idpf.org/2007/opf";
 
-	static final String opfmedia = "application/oebps-package+xml";
+	public static final String opfmedia = "application/oebps-package+xml";
 
-	static final String dcns = "http://purl.org/dc/elements/1.1/";
+	public static final String dcns = "http://purl.org/dc/elements/1.1/";
 
 	private static final String dctermsns = "http://purl.org/dc/terms/";
 
@@ -219,6 +219,7 @@ public class OPFResource extends Resource {
 		attrs.put(null, "unique-identifier", "bookid");
 		ser.startElement(opfns, "package", attrs, true);
 		ser.newLine();
+		
 		ser.startElement(opfns, "metadata", null, false);
 		ser.newLine();
 		Iterator it = epub.metadata.iterator();
@@ -226,9 +227,17 @@ public class OPFResource extends Resource {
 		while (it.hasNext()) {
 			Publication.SimpleMetadata item = (Publication.SimpleMetadata) it.next();
 			if (item.ns != null && item.ns.equals(dcns) && item.name.equals("identifier")) {
-				attrs = new SMapImpl();
-				attrs.put(null, "id", (identifierCount == 0 ? "bookid" : "bookid" + identifierCount));
-				identifierCount++;
+				attrs =(SMapImpl) item.attribs;
+				if(attrs==null){
+					attrs = new SMapImpl();
+					
+				}
+				if(attrs.get(opfns, "scheme")!=null&&attrs.get(opfns, "scheme").equals("UUID")){
+					attrs.put(null, "id", (identifierCount == 0 ? "bookid" : "bookid" + identifierCount));
+					identifierCount++;
+				}
+				
+				
 			} else {
 				attrs = null;
 			}
@@ -243,7 +252,8 @@ public class OPFResource extends Resource {
 				ser.endElement(opfns, "meta");
 				ser.newLine();
 			} else {
-				ser.startElement(item.ns, item.name, attrs, false);
+				
+				ser.startElement(item.ns, item.name, item.attribs, false);
 				char[] arr = value.toCharArray();
 				ser.text(arr, 0, arr.length);
 				ser.endElement(item.ns, item.name);
@@ -251,6 +261,7 @@ public class OPFResource extends Resource {
 			}
 		}
 		ser.endElement(opfns, "metadata");
+		
 		ser.newLine();
 		ser.startElement(opfns, "manifest", null, false);
 		ser.newLine();

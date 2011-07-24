@@ -124,7 +124,7 @@ public class OdtEPUBlisher {
 	
 	private Set<String> classesForDebug=new HashSet<String>();
 
-	private static NamespaceContext XPATH_ODT_NS_CTX=new NamespaceContext() {
+	public static NamespaceContext XPATH_ODT_NS_CTX=new NamespaceContext() {
 		
 		@Override
 		public Iterator getPrefixes(String namespaceURI) {
@@ -142,6 +142,8 @@ public class OdtEPUBlisher {
          return "text";
       }else if(namespaceURI.equals("urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0")){
          return "fo";
+      }else if(namespaceURI.equals("urn:oasis:names:tc:opendocument:xmlns:meta:1.0")){
+         return "meta";
       }
 		  
 			return null;
@@ -157,7 +159,11 @@ public class OdtEPUBlisher {
         return "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
      }else if(prefix.equals("fo")){
         return "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0";
+     }else if(prefix.equals("meta")){
+        return "urn:oasis:names:tc:opendocument:xmlns:meta:1.0";
      }
+      
+      
 			return "";
 		}
 	};
@@ -196,15 +202,20 @@ public class OdtEPUBlisher {
 	}
 
 	public void startRippingSession() throws Exception {
+	 
+	  
+	  Utils.processMetadata(getOdt().getMetaDom(), getEpub(),getXpath());
+	  
 		// set up title, author and language
-		getEpub().addDCMetadata("title", getEpubTitle());
-		getEpub().addDCMetadata("creator",
-				"Java OdT To Epub (Jotte) <luca.conte at gmail.com>");
-		getEpub().addDCMetadata("language", getEpubLanguage());
-		getEpub().addDCMetadata("date", (new Date()).toString());
-		//le peschiamo da qui: getOdt().getMetaDom()
+//		getEpub().addDCMetadata("title", getEpubTitle());
+//		getEpub().addDCMetadata("creator",
+//				"Java OdT To Epub (Jotte) <luca.conte at gmail.com>");
+//		getEpub().addDCMetadata("language", getEpubLanguage());
+//		getEpub().addDCMetadata("date", (new Date()).toString());
+		
+		//le peschiamo da qui: 
 
-		getXpath().setNamespaceContext(XPATH_ODT_NS_CTX);
+	
 		
 		
 		
@@ -602,13 +613,28 @@ ol.d {list-style-type:lower-alpha;}
 		try {
 			
 			OdfDrawImage imgOdf = (OdfDrawImage) getXpath().evaluate(".//draw:image", box,XPathConstants.NODE);
-			 DataSource dataSource = new ByteArrayImageDataSource(getOdt().getPackage().getBytes(imgOdf.getImageUri().toString()));
-			 BitmapImageResource imageResource = getEpub().createBitmapImageResource(
-			         "OPS/images/"+System.currentTimeMillis()+idiv.getId()+".jpg", "image/jpeg", dataSource);
-			 ImageElement bitmap = getCurrentResource().getDocument().createImageElement("img");
-			 bitmap.setImageResource(imageResource);
-			 idiv.add(bitmap);
-			 traverse((Node) getXpath().evaluate(".//text:p", box, XPathConstants.NODE), idiv);
+			 String mimetype=null;
+			 String ext=null;
+			 if(imgOdf.getImageUri().toString().toUpperCase().endsWith("JPG")||imgOdf.getImageUri().toString().toUpperCase().endsWith("JPEG")){
+				 mimetype="image/jpeg";
+				 ext="jpg";
+			 }else if(imgOdf.getImageUri().toString().toUpperCase().endsWith("PNG")){
+				 mimetype="image/png";
+				 ext="png";
+			 }else if(imgOdf.getImageUri().toString().toUpperCase().endsWith("GIF")){
+				 mimetype="image/gif";
+				 ext="gif";
+			 }
+			 if(mimetype!=null) {
+				 DataSource dataSource = new ByteArrayImageDataSource(getOdt().getPackage().getBytes(imgOdf.getImageUri().toString()));
+					
+				 BitmapImageResource imageResource = getEpub().createBitmapImageResource(
+			         "OPS/images/"+System.currentTimeMillis()+(Math.random()*100)+"."+ext, mimetype, dataSource);
+				 ImageElement bitmap = getCurrentResource().getDocument().createImageElement("img");
+				 bitmap.setImageResource(imageResource);
+				 idiv.add(bitmap);
+				 traverse((Node) getXpath().evaluate(".//text:p", box, XPathConstants.NODE), idiv);
+			 }
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

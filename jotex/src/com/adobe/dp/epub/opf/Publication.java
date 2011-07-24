@@ -42,9 +42,11 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -67,6 +69,7 @@ import com.adobe.dp.epub.otf.FontSubsetter;
 import com.adobe.dp.epub.util.TOCLevel;
 import com.adobe.dp.otf.DefaultFontLocator;
 import com.adobe.dp.otf.FontLocator;
+import com.adobe.dp.xml.util.SMap;
 import com.adobe.dp.xml.util.SMapImpl;
 import com.adobe.dp.xml.util.XMLSerializer;
 
@@ -137,13 +140,36 @@ public class Publication {
 		String name;
 
 		String value;
-
+		
+		SMap attribs;
+		
 		SimpleMetadata(String ns, String name, String value) {
 			this.name = name;
 			this.ns = ns;
 			this.value = value;
 		}
+		
+		SimpleMetadata(String ns, String name, String value, SMap attrs) {
+			this.name = name;
+			this.ns = ns;
+			this.value = value;
+			this.attribs=attrs;
+		}
+
+		
 	}
+//	static class AttribsMetadata extends SimpleMetadata{
+//		
+//
+//		SMap attribs;
+//		AttribsMetadata(String ns, String name, String value) {
+//			super(ns, name, value);
+//		}
+//		AttribsMetadata(String ns, String name, String value,SMap attribs) {
+//			super(ns, name, value);
+//			this.attribs=attribs;
+//		}
+//	}
 
 	/**
 	 * Create a new empty EPUB document. Content folder is set to "OPS".
@@ -327,7 +353,8 @@ public class Publication {
 	 */
 	public String generateRandomIdentifier() {
 		// generate v4 UUID
-		StringBuffer sb = new StringBuffer("urn:uuid:");
+		//StringBuffer sb = new StringBuffer("urn:uuid:");
+		StringBuffer sb = new StringBuffer("");
 		SecureRandom sr = new SecureRandom();
 		addRandomHexDigit(sb, sr, 8, 0xF, 0);
 		sb.append('-');
@@ -341,7 +368,9 @@ public class Publication {
 		sb.append('-');
 		addRandomHexDigit(sb, sr, 12, 0xF, 0);
 		String id = sb.toString();
-		this.addDCMetadata("identifier", id);
+		SMapImpl att=new SMapImpl();
+		att.put(OPFResource.opfns, "scheme", "UUID");
+		this.addDCMetadata("identifier", id,att);
 		return id;
 	}
 
@@ -394,7 +423,13 @@ public class Publication {
 			addMetadata(dcns, name, value);
 		}
 	}
-
+	public void addDCMetadata(String name, String value,SMap attrs) {
+		if (value != null&&attrs!=null) {
+			addMetadata(dcns, name, value,attrs);
+		}else if(value!=null){
+			addMetadata(dcns, name, value);
+		}
+	}
 	/**
 	 * Get metadata value. Note that multiple metadata values of the same type
 	 * are allowed. This method can be used to iterate over
@@ -434,9 +469,15 @@ public class Publication {
 			return;
 		metadata.add(new SimpleMetadata(ns, name, value));
 	}
-
+	public void addMetadata(String ns, String name, String value,SMap attributes) {
+		if (value == null)
+			return;
+		metadata.add(new SimpleMetadata(ns, name, value, attributes));
+	}
 	public void addPrimaryIdentifier(String value) {
-		metadata.add(0, new SimpleMetadata(OPFResource.dcns, "identifier", value));
+		SMapImpl attr=new SMapImpl();
+		attr.put(OPFResource.opfns, "scheme", "UUID");
+		metadata.add(0, new SimpleMetadata(OPFResource.dcns, "identifier", value,attr));
 	}
 
 	private String getAdobePrimaryUUID() {
@@ -445,10 +486,12 @@ public class Publication {
 			SimpleMetadata item = (SimpleMetadata) it.next();
 			if (item.ns != null && item.ns.equals(dcns) && item.name.equals("identifier")
 					&& item.value.startsWith("urn:uuid:"))
-				return item.value.substring(9);
+				//return item.value.substring(9);
+				return item.value;
 		}
 		String value = generateRandomIdentifier();
-		return value.substring(9);
+		//return value.substring(9);
+		return value;
 	}
 
 	/**
@@ -461,7 +504,7 @@ public class Publication {
 		Iterator it = metadata.iterator();
 		while (it.hasNext()) {
 			SimpleMetadata item = (SimpleMetadata) it.next();
-			if (item.ns != null && item.ns.equals(dcns) && item.name.equals("identifier"))
+			if (item.ns != null && item.ns.equals(dcns) && item.name.equals("identifier")&& item.attribs.get(OPFResource.opfns, "UUID")!=null)
 				return item.value;
 		}
 		return generateRandomIdentifier();
