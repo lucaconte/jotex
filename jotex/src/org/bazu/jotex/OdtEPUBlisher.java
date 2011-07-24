@@ -36,7 +36,7 @@
  *  -remote images support (?) a lot of problems related
  * 
  */
-package org.bazu.jotte;
+package org.bazu.jotex;
 
 import java.io.FileOutputStream;
 import java.util.Date;
@@ -55,7 +55,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.xerces.dom.TextImpl;
-import org.bazu.jotte.images.ByteArrayImageDataSource;
+import org.bazu.jotex.images.ByteArrayImageDataSource;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.odftoolkit.odfdom.dom.element.OdfStylableElement;

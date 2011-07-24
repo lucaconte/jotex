@@ -1,4 +1,4 @@
-package org.bazu.jotte;
+package org.bazu.jotex;
 
 public class JotexConstants {
   public static String META_AUTHOR_KEY="MetaAuthor";
