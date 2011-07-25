@@ -88,6 +88,7 @@ import com.adobe.dp.epub.opf.OPSResource;
 import com.adobe.dp.epub.opf.Publication;
 import com.adobe.dp.epub.opf.StyleResource;
 import com.adobe.dp.epub.ops.Element;
+import com.adobe.dp.epub.ops.HTMLElement;
 import com.adobe.dp.epub.ops.HyperlinkElement;
 import com.adobe.dp.epub.ops.ImageElement;
 import com.adobe.dp.epub.style.Stylesheet;
@@ -225,7 +226,9 @@ public class OdtEPUBlisher {
 		
 		// processURLSSession(rootTOCEntry,p);
 		processInternalLinksCrossReferences();
+		setFootnotesCSSStyles();
 		getEpub().addToSpine(getFootnotesResource());
+		
 		OCFContainerWriter writer = new OCFContainerWriter(
 				new FileOutputStream(getEpubFilename()));
 		getEpub().serialize(writer);
@@ -269,7 +272,7 @@ public class OdtEPUBlisher {
 			 dstElement.add(a);
 			 getBookmarks().put("#"+ta.getAttribute("text:name"), a);
 		}else if (e instanceof TextNoteElement) {// Is a footnote container 
-			addFootnote((TextNoteElement) e,dstElement);
+		  addFootnote((TextNoteElement) e,dstElement);
 			skipChildren=true;
 		}
 		else if (e instanceof OdfDrawFrame) {
@@ -652,23 +655,6 @@ ol.d {list-style-type:lower-alpha;}
 		TextNoteCitationElement noteCit = (TextNoteCitationElement) getXpath().evaluate(".//text:note-citation", e, XPathConstants.NODE);
 		
 		//Element fn=addFootnoteLink(noteCit.getTextContent(),dstElem);
-
-		
-		
-		
-		
-		Selector selector=getStylesheet().getSimpleSelector(null, "fnDiv");
-		SelectorRule rule= getStylesheet().getRuleForSelector(
-				 selector, true);
-		rule.set("page-break-before", new CSSName("always"));
-		//rule.set("font-size", new CSSLength(0.8,"em"));
-		
-		selector=getStylesheet().getSimpleSelector("a", "fnLink");
-		 rule= getStylesheet().getRuleForSelector(
-				 selector, true);
-		rule.set("vertical-align", new CSSName("super"));
-		rule.set("font-size", new CSSLength(0.5,"em"));
-		
 		
 		Element fn=getFootnotesResource().getDocument().createElement("div");
 		fn.setClassName("fnDiv");
@@ -680,18 +666,51 @@ ol.d {list-style-type:lower-alpha;}
 	     a.add(noteCit.getTextContent());
 	     dstElem.add(a);
 	     
+	     Element noteId=getFootnotesResource().getDocument().createHyperlinkElement("p");
+	     noteId.setClassName("Footnote");
+	     noteId.add(noteCit.getTextContent()+")");
+	     fn.add(noteId);
 	     
 	     HyperlinkElement ar = getFootnotesResource().getDocument().createHyperlinkElement("a");
 		 //ar.setClassName("fnLink");
 	     ar.setXRef(a.getSelfRef());
-	  
-	     ar.add("("+noteCit.getTextContent()+")");
-	     fn.add(ar);
+	     ar.add(" \u21B5");
+	     
+	     //fn.add(ar);
 		OPSResource temp=getCurrentResource();
 		setCurrentResource(getFootnotesResource());
 		traverse((Node) getXpath().evaluate(".//text:note-body", e, XPathConstants.NODE), fn);
+		HTMLElement dst=(HTMLElement) fn.getLastChild();
+		while(dst.getLastChild()!=null&&dst.getLastChild() instanceof Element&&((Element)dst.getLastChild()).getElementName().equals("p")){
+      dst=(HTMLElement) dst.getLastChild();
+    }
+		dst.add(ar);
+    
+
 		setCurrentResource(temp);
-	     return fn;
+	  return fn;
+	}
+	public void setFootnotesCSSStyles(){
+	  Selector selector=getStylesheet().getSimpleSelector(null, "fnDiv");
+    SelectorRule rule= getStylesheet().getRuleForSelector(
+         selector, true);
+    rule.set("page-break-before", new CSSName("always"));
+    if(rule.get("text-indent")!=null&&rule.get("text-indent").toCSSString().startsWith("-")){
+      rule.set("text-indent", new CSSLength(0,"em"));
+    }
+    selector=getStylesheet().getSimpleSelector(null, "Footnote");
+     rule= getStylesheet().getRuleForSelector(
+         selector, true);
+   
+    if(rule.get("text-indent")!=null&&rule.get("text-indent").toCSSString().startsWith("-")){
+      rule.set("text-indent", new CSSLength(0,"em"));
+    }
+    
+    selector=getStylesheet().getSimpleSelector("a", "fnLink");
+     rule= getStylesheet().getRuleForSelector(
+         selector, true);
+    rule.set("vertical-align", new CSSName("super"));
+    rule.set("font-size", new CSSLength(0.5,"em"));
 	}
 	public boolean hasPageBreak(OdfStylableElement e ) throws XPathExpressionException{
 		if(e.getAutomaticStyle()!=null){
