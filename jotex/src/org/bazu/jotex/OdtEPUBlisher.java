@@ -419,7 +419,7 @@ ol.d {list-style-type:lower-alpha;}
 
 		} else if (e instanceof TextImpl) {
 			dstElement.add(e.getTextContent());
-//			System.out.println("Pezzo di testo: " + e.getTextContent());
+			//System.out.println("Pezzo di testo: " + e.getTextContent());
 		}
 
 		// {
@@ -552,8 +552,10 @@ ol.d {list-style-type:lower-alpha;}
 					e.getKey().getName().getLocalName().equals("background-color")||
 					e.getKey().getName().getLocalName().equals("font-size")||
 					e.getKey().getName().getLocalName().equals("color")||
+					 e.getKey().getName().getLocalName().equals("margin-left")||
+					  e.getKey().getName().getLocalName().equals("margin-right")||
 					e.getKey().getName().getLocalName().equals("line-height")){
-				
+			  
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 							 selector, true);
 							
@@ -690,6 +692,9 @@ ol.d {list-style-type:lower-alpha;}
 		setCurrentResource(temp);
 	  return fn;
 	}
+	/**
+	 * Used to prevent negative indentations and to set default styles
+	 */
 	public void setFootnotesCSSStyles(){
 	  Selector selector=getStylesheet().getSimpleSelector(null, "fnDiv");
     SelectorRule rule= getStylesheet().getRuleForSelector(
