@@ -722,16 +722,18 @@ ol.d {list-style-type:lower-alpha;}
     SelectorRule rule= getStylesheet().getRuleForSelector(
          selector, true);
     rule.set("page-break-before", new CSSName("always"));
-    if(rule.get("text-indent")!=null&&rule.get("text-indent").toCSSString().startsWith("-")){
-      rule.set("text-indent", new CSSLength(0,"em"));
-    }
+    rule.set("margin-left", new CSSName("0em"));
+    rule.set("margin-right", new CSSName("0em"));
+    //if(rule.get("text-indent")!=null&&rule.get("text-indent").toCSSString().startsWith("-")){
+     // rule.set("text-indent", new CSSLength(0,"em"));
+   // }
     selector=getStylesheet().getSimpleSelector(null, "Footnote");
      rule= getStylesheet().getRuleForSelector(
          selector, true);
    
-    if(rule.get("text-indent")!=null&&rule.get("text-indent").toCSSString().startsWith("-")){
-      rule.set("text-indent", new CSSLength(0,"em"));
-    }
+//    if(rule.get("text-indent")!=null&&rule.get("text-indent").toCSSString().startsWith("-")){
+//      rule.set("text-indent", new CSSLength(0,"em"));
+//    }
     
     selector=getStylesheet().getSimpleSelector("a", "fnLink");
      rule= getStylesheet().getRuleForSelector(
