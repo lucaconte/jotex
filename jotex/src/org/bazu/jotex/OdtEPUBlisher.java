@@ -845,12 +845,12 @@ ol.d {list-style-type:lower-alpha;}
 			stylesPropsToCSS(ds.getStyleProperties(), "body",null);
 //			Utils.printStyleProps(ds.getStyleProperties());	
 		}
-		 Selector selectorb=getStylesheet().getSimpleSelector("body", null);
-	    SelectorRule ruleb= getStylesheet().getRuleForSelector(
-	        selectorb, true);
-	    CSSValue minh=ruleb.get("font-size");
-	  Selector selector=getStylesheet().getSimpleSelector("p", null);
-	  SelectorRule rule= getStylesheet().getRuleForSelector(
+		Selector selector=getStylesheet().getSimpleSelector("body", null);
+	    SelectorRule rule= getStylesheet().getRuleForSelector(
+	        selector, true);
+	    CSSValue minh=rule.get("font-size");
+	   selector=getStylesheet().getSimpleSelector("p", null);
+	   rule= getStylesheet().getRuleForSelector(
         selector, true);
 	  if(rule.get("margin-top")==null){
 	    rule.set("margin-top", new CSSLength(0d, "em"));
