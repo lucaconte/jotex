@@ -30,6 +30,8 @@
 package org.bazu.jotex;
 
 import java.io.FileOutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,6 +79,7 @@ import org.w3c.dom.Node;
 
 import com.adobe.dp.css.CSSLength;
 import com.adobe.dp.css.CSSName;
+import com.adobe.dp.css.CSSValue;
 import com.adobe.dp.css.Selector;
 import com.adobe.dp.css.SelectorRule;
 import com.adobe.dp.epub.io.DataSource;
@@ -96,7 +99,7 @@ import com.adobe.dp.epub.util.TOCLevel;
 
 public class OdtEPUBlisher {
 	// config fields
-	private String epubTitle;
+	private boolean debugMode=false;
 	private String epubLanguage;
 	private String epubFilename;
 	private String odtFilename;
@@ -172,12 +175,13 @@ public class OdtEPUBlisher {
 	    System.out.println("Usage: java -jar jotte <FILE_NAME>.odt");
 	    System.exit(1);
 	  }
+	  
+	  
 	  System.out.println("Exporting process STARTED at "+new Date());
 		OdtEPUBlisher op=new OdtEPUBlisher();
-		op.setEpubLanguage("it");
-		op.setEpubTitle("jotte");
+	
 		op.setOdtFilename(args[0]);
-		op.setEpubFilename(args[0].split("\\.")[0]+".epub");
+		op.setEpubFilename(args[0].replaceFirst("\\.odt", ".epub"));
 		try {
 			op.startRippingSession();
 		} catch (Exception e) {
@@ -188,7 +192,8 @@ public class OdtEPUBlisher {
 		System.out.println("Exporting process FINISHED at "+new Date());
 	}
 	
-	public OdtEPUBlisher() {
+
+  public OdtEPUBlisher() {
 
 	}
 
@@ -382,13 +387,19 @@ ol.d {list-style-type:lower-alpha;}
 			if(hasPageBreak(otp)){
 				createNewResource();
 			}
+			
 				newElement=getCurrentResource().getDocument().createElement("p");
+			
 				if(dstElement!=null){
 					dstElement.add(newElement);
 				}else{
 					getCurrentResource().getDocument().getBody().add(newElement);
 				}
 				newElement.setClassName(otp.getStyleName());
+				
+//			  if(otp.getTextContent().trim().length()==0&&otp.getFirstChild()==null){//is an ampty paragraph
+//          newElement.add(getCurrentResource().getDocument().createElement("&nbsp;"));
+//        }
 			if (otp.getAutomaticStyle() != null) {// probabile che sia stato
 													// modificato lo stile
 			
@@ -448,13 +459,7 @@ ol.d {list-style-type:lower-alpha;}
 	}
 
 	
-	public String getEpubTitle() {
-		return epubTitle;
-	}
 
-	public void setEpubTitle(String epubTitle) {
-		this.epubTitle = epubTitle;
-	}
 
 	public String getEpubLanguage() {
 		return epubLanguage;
@@ -548,28 +553,45 @@ ol.d {list-style-type:lower-alpha;}
 		for (Entry<OdfStyleProperty, String> e : props.entrySet()) {
 			if(e.getKey().getName().getLocalName().equals("font-style")||
 					e.getKey().getName().getLocalName().equals("font-weight")||
-					e.getKey().getName().getLocalName().equals("text-align")||
+					
 					e.getKey().getName().getLocalName().equals("background-color")||
-					e.getKey().getName().getLocalName().equals("font-size")||
 					e.getKey().getName().getLocalName().equals("color")||
 					 e.getKey().getName().getLocalName().equals("margin-left")||
 					  e.getKey().getName().getLocalName().equals("margin-right")||
+					  e.getKey().getName().getLocalName().equals("margin-top")||
+            e.getKey().getName().getLocalName().equals("margin-bottom")||
 					e.getKey().getName().getLocalName().equals("line-height")){
 			  
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 							 selector, true);
 							
 				rule.set(e.getKey().getName().getLocalName(), new CSSName(e.getValue()));
-			}else if(e.getKey().getName().getLocalName().equals("text-underline-style")){
+			}else if(e.getKey().getName().getLocalName().equals("font-size")){
+        SelectorRule rule= getStylesheet().getRuleForSelector(
+            selector, true);
+        String s=e.getValue();
+        if(s.endsWith("pt")){
+          s=s.substring(0, s.length()-2);
+          BigDecimal ref=new BigDecimal(12);
+          BigDecimal val=new BigDecimal(s);
+          
+          rule.set(e.getKey().getName().getLocalName(), new CSSLength(val.divide(ref, 2, RoundingMode.HALF_UP).doubleValue(), "em"));
+        }else{
+          rule.set(e.getKey().getName().getLocalName(), new CSSName(e.getValue()));
+        }
+     }else if(e.getKey().getName().getLocalName().equals("text-underline-style")){
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 						 selector, true);
 						
 				rule.set("text-decoration", new CSSName("underline"));
-			}else if(e.getKey().getName().getLocalName().equals("text-underline-style")){
+			}else if(e.getKey().getName().getLocalName().equals("text-align")){
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 						 selector, true);
-						
-				rule.set("text-decoration", new CSSName("underline"));
+						String val=e.getValue();
+						if(val.equals("end")){
+						  val="right";
+						}
+				rule.set(e.getKey().getName().getLocalName(), new CSSName(val));
 			}else if(e.getKey().getName().getLocalName().equals("font-name")){
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 						 selector, true);
@@ -823,7 +845,23 @@ ol.d {list-style-type:lower-alpha;}
 			stylesPropsToCSS(ds.getStyleProperties(), "body",null);
 //			Utils.printStyleProps(ds.getStyleProperties());	
 		}
-		
+		 Selector selectorb=getStylesheet().getSimpleSelector("body", null);
+	    SelectorRule ruleb= getStylesheet().getRuleForSelector(
+	        selectorb, true);
+	    CSSValue minh=ruleb.get("font-size");
+	  Selector selector=getStylesheet().getSimpleSelector("p", null);
+	  SelectorRule rule= getStylesheet().getRuleForSelector(
+        selector, true);
+	  if(rule.get("margin-top")==null){
+	    rule.set("margin-top", new CSSLength(0d, "em"));
+	  }
+	  if(rule.get("margin-bottom")==null){
+      rule.set("margin-bottom", new CSSLength(0d, "em"));
+    }
+	  
+	  if(minh!=null){
+	    rule.set("min-height", minh);
+	  }
 	}
 
 	public XPath getXpath() {
@@ -868,4 +906,13 @@ ol.d {list-style-type:lower-alpha;}
 			System.out.println(s);
 		}
 	}
+	
+	 public boolean isDebugMode() {
+	    return debugMode;
+	  }
+
+	  public void setDebugMode(boolean debugMode) {
+	    this.debugMode = debugMode;
+	  }
+
 }
