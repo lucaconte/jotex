@@ -47,6 +47,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.ParseException;
 import org.apache.xerces.dom.TextImpl;
 import org.bazu.jotex.images.ByteArrayImageDataSource;
 import org.odftoolkit.odfdom.doc.OdfDocument;
@@ -113,7 +116,10 @@ public class OdtEPUBlisher {
 	private OPSResource footnotesResource;
 	private XPath xpath;
 	
-	private Map<String, Element> bookmarks;
+	private int maxFilesSize=0;
+
+
+  private Map<String, Element> bookmarks;
 	private Set<HyperlinkElement> internalLink;
 	
 	private Set<String> classesForDebug=new HashSet<String>();
@@ -170,27 +176,7 @@ public class OdtEPUBlisher {
 	private Stack<TOCLevel> tocEntriesBuffer;
 
 	
-	public static void main(String[] args) {
-	  if(args.length==0){
-	    System.out.println("Usage: java -jar jotte <FILE_NAME>.odt");
-	    System.exit(1);
-	  }
-	  
-	  
-	  System.out.println("Exporting process STARTED at "+new Date());
-		OdtEPUBlisher op=new OdtEPUBlisher();
 	
-		op.setOdtFilename(args[0]);
-		op.setEpubFilename(args[0].replaceFirst("\\.odt", ".epub"));
-		try {
-			op.startRippingSession();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			 System.out.println("Exporting process FAILED at "+new Date());
-		}
-		System.out.println("Exporting process FINISHED at "+new Date());
-	}
 	
 
   public OdtEPUBlisher() {
@@ -202,26 +188,11 @@ public class OdtEPUBlisher {
 	  
 	  Utils.processMetadata(getOdt().getMetaDom(), getEpub(),getXpath());
 	  
-		// set up title, author and language
-//		getEpub().addDCMetadata("title", getEpubTitle());
-//		getEpub().addDCMetadata("creator",
-//				"Java OdT To Epub (Jotte) <luca.conte at gmail.com>");
-//		getEpub().addDCMetadata("language", getEpubLanguage());
-//		getEpub().addDCMetadata("date", (new Date()).toString());
-		
-		//le peschiamo da qui: 
-
-	
-		
-		
-		
-		
 		createNewResource();
 		int pi = 0;
 	//stylesPropsToCSS(	getOdtDocument().getDocumentStyles().get, className)
 		//System.out.println(getOdtDocument().getDocumentStyles());
 		extractDefaultStyles(getOdt().getDocumentStyles());
-		
 		
 		
 	
@@ -233,6 +204,11 @@ public class OdtEPUBlisher {
 		processInternalLinksCrossReferences();
 		setFootnotesCSSStyles();
 		getEpub().addToSpine(getFootnotesResource());
+	  if(getMaxFilesSize()>0){
+      getEpub().splitLargeChapters(getMaxFilesSize()*1024);
+    }
+
+		
 		
 		OCFContainerWriter writer = new OCFContainerWriter(
 				new FileOutputStream(getEpubFilename()));
@@ -374,8 +350,9 @@ ol.d {list-style-type:lower-alpha;}
 				if(newElement!=null){
 					newElement.setClassName(oth.getStyleName());
 				}
-//				Utils.printStyleProps(oth.getAutomaticStyle()
-//						.getStyleProperties());
+				if(isDebugMode()){
+				  Utils.printStyleProps(oth.getAutomaticStyle().getStyleProperties());
+				}
 			}
 
 			getOdt().getDocumentStyles().getElementsByTagName(
@@ -397,9 +374,7 @@ ol.d {list-style-type:lower-alpha;}
 				}
 				newElement.setClassName(otp.getStyleName());
 				
-//			  if(otp.getTextContent().trim().length()==0&&otp.getFirstChild()==null){//is an ampty paragraph
-//          newElement.add(getCurrentResource().getDocument().createElement("&nbsp;"));
-//        }
+
 			if (otp.getAutomaticStyle() != null) {// probabile che sia stato
 													// modificato lo stile
 			
@@ -408,8 +383,10 @@ ol.d {list-style-type:lower-alpha;}
 				if(newElement!=null){
 					newElement.setClassName(otp.getStyleName());
 				}
-//				Utils.printStyleProps(otp.getAutomaticStyle()
-//						.getStyleProperties());
+				if(isDebugMode()){
+				  Utils.printStyleProps(otp.getAutomaticStyle()
+						.getStyleProperties());
+				}
 			}
 
 		} else if (e instanceof OdfTextSpan) {// text:span
@@ -424,24 +401,20 @@ ol.d {list-style-type:lower-alpha;}
 				dstElement.add(newElement);
 				newElement.setClassName(ots.getStyleName());
 				stylesPropsToCSS(ots.getAutomaticStyle().getStyleProperties(), newElement.getClassName());
-//				Utils.printStyleProps(ots.getAutomaticStyle()
-//						.getStyleProperties());
+				if(isDebugMode()){
+				  Utils.printStyleProps(ots.getAutomaticStyle()
+						.getStyleProperties());
+				}
 			}
 
 		} else if (e instanceof TextImpl) {
 			dstElement.add(e.getTextContent());
-			//System.out.println("Pezzo di testo: " + e.getTextContent());
+			if(isDebugMode()){
+			  System.out.println("Pezzo di testo: " + e.getTextContent());
+			}
 		}
 
-		// {
-		// if (!e.hasChildNodes()) {
-		//
-		// System.out.println("Nome: " + e.getNodeName() + " Value: "
-		// + e.getTextContent() + " Tipo: " + e.getNodeType()
-		// + " Class: " + e.getClass() + " Parent: "
-		// + e.getParentNode().getNodeName());
-		// }
-		// }
+
 		for (int i = 0; i < e.getChildNodes().getLength()&&!skipChildren; i++) {
 
 			traverse(e.getChildNodes().item(i),newElement!=null?newElement:dstElement);
@@ -658,17 +631,7 @@ ol.d {list-style-type:lower-alpha;}
 			e.printStackTrace();
 		}
 
-		
-
-//     // add a bitmap image
-//     Element container = chapter2Doc.createElement("p");
-//     container.setClassName("container");
-//     body2.add(container);
-//     ImageElement bitmap = chapter2Doc.createImageElement("img");
-//     bitmap.setClassName("bitmap");
-//     bitmap.setImageResource(imageResource);
-//     container.add(bitmap);
-		
+	
 
 	     return idiv;
 	}
@@ -739,7 +702,7 @@ ol.d {list-style-type:lower-alpha;}
      rule= getStylesheet().getRuleForSelector(
          selector, true);
     rule.set("vertical-align", new CSSName("super"));
-    rule.set("font-size", new CSSLength(0.5,"em"));
+    rule.set("font-size", new CSSLength(0.80,"em"));
 	}
 	public boolean hasPageBreak(OdfStylableElement e ) throws XPathExpressionException{
 		if(e.getAutomaticStyle()!=null){
@@ -825,27 +788,32 @@ ol.d {list-style-type:lower-alpha;}
 					stylesPropsToCSS(s.getStyleProperties(), null,"Footnote");
 					stylesPropsToCSS(s.getStyleProperties(), null,"fnDiv");
 			}
-			
-			
-//			System.out.println("Nome: "+s.getAttribute("style:name")+" Classe: "+s.getAttribute("style:class")+"Outline Level"+s.getAttribute("style:default-outline-level"));
-//			System.out.println("{");
-//				Utils.printStyleProps(s.getStyleProperties());
-//			System.out.println("}");
+			if(isDebugMode()){
+			  System.out.println("Nome: "+s.getAttribute("style:name")+" Classe: "+s.getAttribute("style:class")+"Outline Level"+s.getAttribute("style:default-outline-level"));
+			  System.out.println("{");
+				Utils.printStyleProps(s.getStyleProperties());
+				System.out.println("}");
+			}
 		}
-//		System.out.println("-----");
-//		System.out.println("Stile di testo");
-		for (OdfStyle	s : styles.getStylesForFamily(OdfStyleFamily.Text)) {
+		
+		if(isDebugMode()){
+		  System.out.println("-----");
+		  System.out.println("Stile di testo");
+		  for (OdfStyle	s : styles.getStylesForFamily(OdfStyleFamily.Text)) {
 			
-//			System.out.println("Nome: "+s.getAttribute("style:name")+" Classe: "+s.getAttribute("style:class"));
-//			System.out.println("{");
-//			Utils.printStyleProps(s.getStyleProperties());
-//			System.out.println("}");
+		    System.out.println("Nome: "+s.getAttribute("style:name")+" Classe: "+s.getAttribute("style:class"));
+		    System.out.println("{");
+		    Utils.printStyleProps(s.getStyleProperties());
+		    System.out.println("}");
+		  }
+		  System.out.println("-----");
+		  System.out.println("Stili di default");
 		}
-//		System.out.println("-----");
-//		System.out.println("Stili di default");
 		for (OdfDefaultStyle ds : styles.getDefaultStyles()) {
 			stylesPropsToCSS(ds.getStyleProperties(), "body",null);
-//			Utils.printStyleProps(ds.getStyleProperties());	
+			if(isDebugMode()){
+			  Utils.printStyleProps(ds.getStyleProperties());
+			}
 		}
 		Selector selector=getStylesheet().getSimpleSelector("body", null);
 	    SelectorRule rule= getStylesheet().getRuleForSelector(
@@ -916,5 +884,13 @@ ol.d {list-style-type:lower-alpha;}
 	  public void setDebugMode(boolean debugMode) {
 	    this.debugMode = debugMode;
 	  }
+	  
+	  public int getMaxFilesSize() {
+	    return maxFilesSize;
+	  }
 
+
+	  public void setMaxFilesSize(int maxFilesSize) {
+	    this.maxFilesSize = maxFilesSize;
+	  }
 }
