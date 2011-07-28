@@ -55,6 +55,20 @@ public class CommandLineLauncher {
      if(line.hasOption("d")){
        op.setDebugMode(true);
      }
+     
+     if(line.hasOption("e")){
+       if(line.getOptionValue("e").equals(JotexConstants.FONTS_ENCRYPTION_METHOD_F451)){
+         op.getEpub().useNOFontMangling();
+       }else if(line.getOptionValue("e").equals(JotexConstants.FONTS_ENCRYPTION_METHOD_ADOBE)){
+         op.getEpub().useAdobeFontMangling();
+       }else{
+         op.getEpub().useIDPFFontMangling();
+       }
+     }
+     
+     if(line.hasOption("f")){
+      op.setFontsPath(line.getOptionValue("f"));
+     }
    } catch (ParseException e1) {
      e1.printStackTrace();
      System.out.println("Bad input oprions");
@@ -96,6 +110,22 @@ public class CommandLineLauncher {
                                  .withArgName("SIZE")
                                  .withType(Integer.class)
                                  .create("s") );
+    
+    options.addOption( OptionBuilder.withLongOpt( "fem" )
+        .withDescription( "Fonts Encriptyon Method. Fonts need, for licensing reasons, to be encrypted.\r\n" +
+        		" Two encryption methods are supported \"adobe\" and \"idpf\" NO PLAIN Fonts embeddind is supported by jotex" )
+        .hasArg()
+        .withArgName("adobe|idpf(default)")
+        .withType(Integer.class)
+        .create("e") );
+    
+    options.addOption( OptionBuilder.withLongOpt( "fp" )
+        .withDescription( "Fonts Path. A path in which Jotex looks for Fonts files that need to be embedded (in an encrypted form [see \"fem\" option]) into the epub.\r\n" +
+        		"Without this param NO FONT will be included into the epub" )
+        .hasArg()
+        .withArgName("FONTS_PATH")
+        .withType(Integer.class)
+        .create("f") );
 //    options.addOption( "B", "ignore-backups", false, "do not list implied entried "
 //                                                  + "ending with ~");
 //    options.addOption( "c", false, "with -lt: sort by, and show, ctime (time of last " 

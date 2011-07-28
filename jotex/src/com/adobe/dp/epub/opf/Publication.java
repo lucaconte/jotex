@@ -104,8 +104,12 @@ public class Publication {
 	boolean translit;
 
 	boolean useIDPFFontMangling = true;
+	
+	boolean useNOFontMangling = false;
 
-	Hashtable resourcesByName = new Hashtable();
+
+
+  Hashtable resourcesByName = new Hashtable();
 
 	Hashtable resourceRefsByName = new Hashtable();
 
@@ -260,6 +264,7 @@ public class Publication {
 	 */
 	public void useAdobeFontMangling() {
 		useIDPFFontMangling = false;
+	  useNOFontMangling=false;
 	}
 
 	/**
@@ -273,7 +278,12 @@ public class Publication {
 	 */
 	public void useIDPFFontMangling() {
 		useIDPFFontMangling = true;
+		useNOFontMangling=false;
 	}
+
+	 public void useNOFontMangling() {
+	   useNOFontMangling=true;
+	 }
 
 	/**
 	 * Transliterate cyrillic metadata when serializing. This is useful when
@@ -878,7 +888,8 @@ public class Publication {
 		while (names.hasMoreElements()) {
 			String name = (String) names.nextElement();
 			Resource res = (Resource) resourcesByName.get(name);
-			if (res instanceof FontResource) {
+			if (res instanceof FontResource && !useNOFontMangling) {
+			  //TODO: FONTS commented for exporting font as are don't cara about licensing
 				needEnc = true;
 			}
 			OutputStream out = container.getOutputStream(name, res.canCompress());

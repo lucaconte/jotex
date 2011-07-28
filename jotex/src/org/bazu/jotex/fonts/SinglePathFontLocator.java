@@ -1,5 +1,5 @@
 /*
- * JotexConstants.java
+ * SinglePathFontLocator.java
  * 
  * Copyright (c) 2011, Luca Conte. All rights reserved.
  *
@@ -18,30 +18,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package org.bazu.jotex;
+package org.bazu.jotex.fonts;
 
-public class JotexConstants {
-  public static String META_AUTHOR_KEY="MetaAuthor";
-  public static String META_TILTE_KEY="MetaTitle";
-  public static String META_LANGUAGE_KEY="MetaLanguage";
-  
-  public static String META_DESCRITPION_KEY="MetaDescritpion";
-  public static String META_ISBN_KEY="MetaISBN";
-  public static String META_ORIGINAL_TITLE_KEY="MetaOriginalTitle";
-  public static String META_PUBLISHER_KEY="MetaPublisher";
-  public static String META_PUBLISHING_DATE_KEY="MetaPublishingDate";
-  public static String META_TAGS_KEY="MetaTags";
-  
-  public static String FONTS_ENCRYPTION_METHOD_ADOBE="adobe";
-  public static String FONTS_ENCRYPTION_METHOD_IDPF="idpf";
-  
-  public static String FONTS_ENCRYPTION_METHOD_F451="f451";
-  
-  
-  
-  
-  
-  
-  
+import com.adobe.dp.otf.DefaultFontLocator;
+
+public class SinglePathFontLocator extends DefaultFontLocator {
+
+  public SinglePathFontLocator(String[] dirs) {
+    super(dirs);
  
+  }
+
+  public SinglePathFontLocator(String dir) {
+    super(new String[]{dir});
+  }
+
+
 }

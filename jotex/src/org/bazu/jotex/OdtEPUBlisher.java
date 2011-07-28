@@ -51,6 +51,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.xerces.dom.TextImpl;
+import org.bazu.jotex.fonts.SinglePathFontLocator;
 import org.bazu.jotex.images.ByteArrayImageDataSource;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
@@ -82,6 +83,7 @@ import org.w3c.dom.Node;
 
 import com.adobe.dp.css.CSSLength;
 import com.adobe.dp.css.CSSName;
+import com.adobe.dp.css.CSSQuotedString;
 import com.adobe.dp.css.CSSValue;
 import com.adobe.dp.css.Selector;
 import com.adobe.dp.css.SelectorRule;
@@ -99,6 +101,8 @@ import com.adobe.dp.epub.ops.HyperlinkElement;
 import com.adobe.dp.epub.ops.ImageElement;
 import com.adobe.dp.epub.style.Stylesheet;
 import com.adobe.dp.epub.util.TOCLevel;
+import com.adobe.dp.otf.DefaultFontLocator;
+import com.adobe.dp.otf.FontLocator;
 
 public class OdtEPUBlisher {
 	// config fields
@@ -116,7 +120,12 @@ public class OdtEPUBlisher {
 	private OPSResource footnotesResource;
 	private XPath xpath;
 	
-	private int maxFilesSize=0;
+	
+	private String fontsPath;
+
+
+
+  private int maxFilesSize=0;
 
 
   private Map<String, Element> bookmarks;
@@ -208,8 +217,15 @@ public class OdtEPUBlisher {
       getEpub().splitLargeChapters(getMaxFilesSize()*1024);
     }
 
-		
-		
+		//include fonts
+	// embed fonts
+    // NB: on non-Windows platforms you need to supply your own
+    // FontLocator implementation or place fonts in ~/.epubfonts
+	  if(getFontsPath()!=null&&getFontsPath().trim().length()>0){
+	    FontLocator fontLocator = new SinglePathFontLocator(getFontsPath());
+      getEpub().cascadeStyles();
+      getEpub().addFonts(getStyleResource(), fontLocator);
+	  }
 		OCFContainerWriter writer = new OCFContainerWriter(
 				new FileOutputStream(getEpubFilename()));
 		getEpub().serialize(writer);
@@ -569,7 +585,7 @@ ol.d {list-style-type:lower-alpha;}
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 						 selector, true);
 						
-				rule.set("font-family", new CSSName(e.getValue()));
+				rule.set("font-family", new CSSQuotedString(e.getValue()));
 			}else if(e.getKey().getName().getLocalName().equals("text-indent")){
 				SelectorRule rule= getStylesheet().getRuleForSelector(
 						 selector, true);
@@ -893,4 +909,14 @@ ol.d {list-style-type:lower-alpha;}
 	  public void setMaxFilesSize(int maxFilesSize) {
 	    this.maxFilesSize = maxFilesSize;
 	  }
+	  
+	  public String getFontsPath() {
+	    return fontsPath;
+	  }
+
+	  public void setFontsPath(String fontsPath) {
+	    this.fontsPath = fontsPath;
+	  }
+
+
 }

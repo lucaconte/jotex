@@ -277,7 +277,7 @@ public class HelloEPUB3 {
 
 			// save EPUB to an OCF container
 			OCFContainerWriter writer = new OCFContainerWriter(
-					new FileOutputStream("hello.epub"));
+					new FileOutputStream("n:\\tmp\\hello.epub"));
 			epub.serialize(writer);
 
 		} catch (Exception e) {

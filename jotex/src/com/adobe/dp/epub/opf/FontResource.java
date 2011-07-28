@@ -120,14 +120,16 @@ public class FontResource extends Resource {
 			byte[] buffer = new byte[4096];
 			int len;
 			InputStream in = source.getInputStream();
-			if (mask != null) {
+			//TODO: FONTS commented for exporting font as are don't care about licensing
+			if (mask != null && !epub.useNOFontMangling) {
 				// encryption assumes compression
 				def = new Deflater(9, true);
 				in = new DeflaterInputStreamImpl(in, def);
 			}
 			boolean first = true;
 			while ((len = in.read(buffer)) > 0) {
-				if (first && mask != null) {
+			  //TODO: FONTS commented for exporting font as are don't care about licensing
+				if (!epub.useNOFontMangling && first && mask != null) {
 					first = false;
 					for (int i = 0; i < headerLen; i++) {
 						buffer[i] = (byte) (buffer[i] ^ mask[i % mask.length]);
