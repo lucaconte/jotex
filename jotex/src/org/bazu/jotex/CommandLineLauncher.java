@@ -57,13 +57,13 @@ public class CommandLineLauncher {
      }
      
      if(line.hasOption("e")){
-       if(line.getOptionValue("e").equals(JotexConstants.FONTS_ENCRYPTION_METHOD_F451)){
-         op.getEpub().useNOFontMangling();
+       if(line.getOptionValue("e").equals(JotexConstants.FONTS_ENCRYPTION_METHOD_IDPF)){
+         op.getEpub().useIDPFFontMangling();
        }else if(line.getOptionValue("e").equals(JotexConstants.FONTS_ENCRYPTION_METHOD_ADOBE)){
          op.getEpub().useAdobeFontMangling();
-       }else{
-         op.getEpub().useIDPFFontMangling();
        }
+     }else{
+       op.getEpub().useNOFontMangling();
      }
      
      if(line.hasOption("f")){
