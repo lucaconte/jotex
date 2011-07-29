@@ -115,7 +115,7 @@ public class CommandLineLauncher {
         .withDescription( "Fonts Encriptyon Method. Fonts need, for licensing reasons, to be encrypted.\r\n" +
         		" Two encryption methods are supported \"adobe\" and \"idpf\" NO PLAIN Fonts embeddind is supported by jotex" )
         .hasArg()
-        .withArgName("adobe|idpf(default)")
+        .withArgName("adobe|idpf")
         .withType(Integer.class)
         .create("e") );
     
