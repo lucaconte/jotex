@@ -3,7 +3,7 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-    	 <property name="jotex.version" value="0.3.27"/>
+    	 <property name="jotex.version" value="0.3.30"/>
     	<mkdir dir="./bin"/>
     	<javac srcdir="./src" destdir="./bin" debug="on" source="1.5" target="1.5" encoding = "utf-8">
     		<classpath>
@@ -19,7 +19,7 @@
             	<attribute name="Implementation-Version" 
             	                 value="${jotex.version}"/>     
             </manifest>
-            <fileset dir="N:/java/workspaces/workspace_benetton_midog/jotex/bin"/>
+            <fileset dir="./bin"/>
             <zipfileset excludes="META-INF/*" src="./libs/odfdom-java-0.8.7-jar-with-dependencies.jar"/>
             <zipfileset excludes="META-INF/*" src="./libs/commons-cli-1.2.jar"/>
         </jar>
