@@ -274,12 +274,15 @@ public class OdtEPUBlisher {
 		}
 		else if (e instanceof OdfDrawFrame) {
 			OdfDrawFrame dframe = (OdfDrawFrame) e;
+	//here can be captured resize options
 		
 		} else if (e instanceof DrawTextBoxElement) {
 			DrawTextBoxElement didascalia = (DrawTextBoxElement) e;
-			addImage(didascalia,dstElement);
-			skipChildren=true;
+			newElement=addImageBox(didascalia,dstElement);
+			
 		} else if (e instanceof OdfDrawImage) {
+			addImage((OdfDrawImage) e,dstElement);
+			
 		}else if (e instanceof OdfTextList) {
 			OdfTextList otl=(OdfTextList) e;
 			dstElement=getCurrentResource().getDocument().getBody();
@@ -603,7 +606,7 @@ ol.d {list-style-type:lower-alpha;}
 	}
 	
 	//TODO: vanno gestite e verificate tutti i possibili mimetype delle immagini  
-	protected Element addImage(DrawTextBoxElement box, Element dstElem){
+	protected Element addImageBox(DrawTextBoxElement box, Element dstElem){
 		Selector selector=getStylesheet().getSimpleSelector(null, "imgDiv");
 		SelectorRule rule= getStylesheet().getRuleForSelector(
 				 selector, true);
@@ -616,9 +619,15 @@ ol.d {list-style-type:lower-alpha;}
 		
 		
 		
+	
+
+	
+
+	     return idiv;
+	}
+	protected void addImage(OdfDrawImage imgOdf, Element dstElem){
 		try {
 			
-			OdfDrawImage imgOdf = (OdfDrawImage) getXpath().evaluate(".//draw:image", box,XPathConstants.NODE);
 			 String mimetype=null;
 			 String ext=null;
 			 if(imgOdf.getImageUri().toString().toUpperCase().endsWith("JPG")||imgOdf.getImageUri().toString().toUpperCase().endsWith("JPEG")){
@@ -638,18 +647,13 @@ ol.d {list-style-type:lower-alpha;}
 			         "OPS/images/"+System.currentTimeMillis()+(Math.random()*100)+"."+ext, mimetype, dataSource);
 				 ImageElement bitmap = getCurrentResource().getDocument().createImageElement("img");
 				 bitmap.setImageResource(imageResource);
-				 idiv.add(bitmap);
-				 traverse((Node) getXpath().evaluate(".//text:p", box, XPathConstants.NODE), idiv);
+				 dstElem.add(bitmap);
+				
 			 }
-		} catch (XPathExpressionException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception e2) {
+			e2.printStackTrace();
 		}
-
-	
-
-	     return idiv;
+		
 	}
 	protected Element addFootnote(TextNoteElement e, Element dstElem) throws Exception{
 		
