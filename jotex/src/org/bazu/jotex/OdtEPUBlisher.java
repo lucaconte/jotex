@@ -302,9 +302,10 @@ ol.d {list-style-type:lower-alpha;}
 			  }
 			}
 			
-			
-			dstElement.add(newElement);
-			newElement.setClassName(otl.getTextStyleNameAttribute());
+			if(newElement!=null){
+				dstElement.add(newElement);
+				newElement.setClassName(otl.getTextStyleNameAttribute());
+			}
 					//title[@lang='eng']
 		}else if (e instanceof TextListItemElement) {
 			TextListItemElement li=(TextListItemElement) e;
@@ -383,7 +384,7 @@ ol.d {list-style-type:lower-alpha;}
 			if(hasPageBreak(otp)){
 				createNewResource();
 			}
-			
+			otp.getTextContent()
 				newElement=getCurrentResource().getDocument().createElement("p");
 			
 				if(dstElement!=null){
