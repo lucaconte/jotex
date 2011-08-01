@@ -230,7 +230,9 @@ public class OdtEPUBlisher {
 				new FileOutputStream(getEpubFilename()));
 		getEpub().serialize(writer);
 		
-		//printClassesFound();
+		if(isDebugMode()){
+			printClassesFound();
+		}
 	}
 	public  void traverse(Node e, Element dstElement) throws Exception {
 		classesForDebug.add(e.getClass().toString());
@@ -384,7 +386,7 @@ ol.d {list-style-type:lower-alpha;}
 			if(hasPageBreak(otp)){
 				createNewResource();
 			}
-			otp.getTextContent()
+		
 				newElement=getCurrentResource().getDocument().createElement("p");
 			
 				if(dstElement!=null){
@@ -606,7 +608,6 @@ ol.d {list-style-type:lower-alpha;}
 		
 	}
 	
-	//TODO: vanno gestite e verificate tutti i possibili mimetype delle immagini  
 	protected Element addImageBox(DrawTextBoxElement box, Element dstElem){
 		Selector selector=getStylesheet().getSimpleSelector(null, "imgDiv");
 		SelectorRule rule= getStylesheet().getRuleForSelector(
