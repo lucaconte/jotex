@@ -39,6 +39,7 @@ public class CommandLineLauncher {
  public static void main(String[] args) {
    OdtEPUBlisher op=new OdtEPUBlisher();
    CommandLineLauncher cl=new CommandLineLauncher();
+   op.setOdtFilename(args[args.length-1]);
    try {
      CommandLine line = cl.getParser().parse( cl.getOptions(), args );
      
@@ -56,6 +57,11 @@ public class CommandLineLauncher {
        op.setDebugMode(true);
      }
      
+     if(line.hasOption("o")){
+       op.setEpubFilename(line.getOptionValue("o"));
+     }else{
+       op.setEpubFilename(args[args.length-1].replaceFirst("\\.odt", ".epub"));
+     }
      if(line.hasOption("e")){
        if(line.getOptionValue("e").equals(JotexConstants.FONTS_ENCRYPTION_METHOD_IDPF)){
          op.getEpub().useIDPFFontMangling();
@@ -84,8 +90,9 @@ public class CommandLineLauncher {
    System.out.println("Exporting process of \""+args[args.length-1]+"\" STARTED at "+new Date());
    
  
-   op.setOdtFilename(args[args.length-1]);
-   op.setEpubFilename(args[args.length-1].replaceFirst("\\.odt", ".epub"));
+  
+  
+  
    try {
      op.startRippingSession();
    } catch (Exception e) {
@@ -126,6 +133,12 @@ public class CommandLineLauncher {
         .withArgName("FONTS_PATH")
         .withType(Integer.class)
         .create("f") );
+    
+    options.addOption( OptionBuilder.withLongOpt( "output" )
+        .withDescription( "Output file. If not present, Jotex will create an epub file in the same original odt's directory  with the same original odt's file name" )
+        .hasArg()
+        .withArgName("OUTPUT_FILE")
+        .create("o") );
 //    options.addOption( "B", "ignore-backups", false, "do not list implied entried "
 //                                                  + "ending with ~");
 //    options.addOption( "c", false, "with -lt: sort by, and show, ctime (time of last " 
