@@ -32,10 +32,12 @@ package org.bazu.jotex;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -47,16 +49,18 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
 import org.apache.xerces.dom.TextImpl;
 import org.bazu.jotex.fonts.SinglePathFontLocator;
 import org.bazu.jotex.images.ByteArrayImageDataSource;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.odftoolkit.odfdom.dom.element.OdfStylableElement;
+import org.odftoolkit.odfdom.dom.element.OdfStyleBase;
 import org.odftoolkit.odfdom.dom.element.draw.DrawTextBoxElement;
+import org.odftoolkit.odfdom.dom.element.office.OfficeBodyElement;
+import org.odftoolkit.odfdom.dom.element.office.OfficeDocumentContentElement;
+import org.odftoolkit.odfdom.dom.element.office.OfficeScriptsElement;
+import org.odftoolkit.odfdom.dom.element.office.OfficeTextElement;
 import org.odftoolkit.odfdom.dom.element.style.StyleParagraphPropertiesElement;
 import org.odftoolkit.odfdom.dom.element.table.TableTableCellElement;
 import org.odftoolkit.odfdom.dom.element.table.TableTableElement;
@@ -72,6 +76,7 @@ import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.dom.style.props.OdfStyleProperty;
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawFrame;
 import org.odftoolkit.odfdom.incubator.doc.draw.OdfDrawImage;
+import org.odftoolkit.odfdom.incubator.doc.office.OdfOfficeAutomaticStyles;
 import org.odftoolkit.odfdom.incubator.doc.office.OdfOfficeStyles;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfDefaultStyle;
 import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
@@ -79,6 +84,7 @@ import org.odftoolkit.odfdom.incubator.doc.text.OdfTextHeading;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextList;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextParagraph;
 import org.odftoolkit.odfdom.incubator.doc.text.OdfTextSpan;
+import org.odftoolkit.odfdom.pkg.OdfElement;
 import org.w3c.dom.Node;
 
 import com.adobe.dp.css.CSSLength;
@@ -101,7 +107,6 @@ import com.adobe.dp.epub.ops.HyperlinkElement;
 import com.adobe.dp.epub.ops.ImageElement;
 import com.adobe.dp.epub.style.Stylesheet;
 import com.adobe.dp.epub.util.TOCLevel;
-import com.adobe.dp.otf.DefaultFontLocator;
 import com.adobe.dp.otf.FontLocator;
 
 public class OdtEPUBlisher {
@@ -238,12 +243,30 @@ public class OdtEPUBlisher {
 		classesForDebug.add(e.getClass().toString());
 		boolean skipChildren=false;
 		Element newElement=null;
+		
+		
 		if (e instanceof TextNoteBodyElement) {// Corpo di una nota
 			TextNoteBodyElement noteBody = (TextNoteBodyElement) e;
 		} else if (e instanceof TextNoteCitationElement) {// Rimando ad una nota
 		
 			
-		}else if (e instanceof TextSElement) {// ?
+		}else if (e instanceof OfficeTextElement) {// OFFICE
+		  OfficeTextElement ote=(OfficeTextElement) e;
+      
+    }
+    else if (e instanceof OfficeScriptsElement) {// OFFICE
+  
+  
+    }else if (e instanceof OfficeDocumentContentElement) {// OFFICE
+  
+  
+    }else if (e instanceof OdfOfficeAutomaticStyles) {// OFFICE
+  
+  
+    }else if (e instanceof OfficeBodyElement) {// OFFICE
+  
+  
+    }else if (e instanceof TextSElement) {// ?
 			TextSElement te=(TextSElement) e;
 			
 		}else if (e instanceof TextAElement) {// is an hyperlink
@@ -366,8 +389,17 @@ ol.d {list-style-type:lower-alpha;}
 			
 			if (oth.getAutomaticStyle() != null) {// probabile che sia stato
 								//	oth.getAutomaticStyles()	// modificato lo stile
-			
-				
+			  List<OdfStyleBase> classeCSS=new ArrayList<OdfStyleBase>();
+			  OdfStyleBase p= oth.getAutomaticStyle().getParentStyle();
+	       while(p!=null){
+	         classeCSS.add(p);
+	         p=p.getParentStyle();
+	         
+	       }
+	       Collections.reverse(classeCSS);
+	       for (OdfStyleBase odfStyleBase : classeCSS) {
+	         stylesPropsToCSS(odfStyleBase.getStyleProperties(), newElement.getClassName());
+	      }
 				stylesPropsToCSS(oth.getAutomaticStyle().getStyleProperties(), oth.getStyleName());
 				if(newElement!=null){
 					newElement.setClassName(oth.getStyleName());
@@ -382,6 +414,7 @@ ol.d {list-style-type:lower-alpha;}
 
 		} else if (e instanceof OdfTextParagraph) {// text:p
 			// System.out.println(e.getTextContent());
+		  
 			OdfTextParagraph otp = (OdfTextParagraph) e;
 			if(hasPageBreak(otp)){
 				createNewResource();
@@ -394,17 +427,37 @@ ol.d {list-style-type:lower-alpha;}
 				}else{
 					getCurrentResource().getDocument().getBody().add(newElement);
 				}
-				newElement.setClassName(otp.getStyleName());
 				
-
+				newElement.setClassName(otp.getStyleName().trim());
+				
+			
 			if (otp.getAutomaticStyle() != null) {// probabile che sia stato
 													// modificato lo stile
-			
-				
+			  List<OdfStyleBase> classeCSS=new ArrayList<OdfStyleBase>();
+			 OdfStyleBase p= otp.getAutomaticStyle().getParentStyle();
+       while(p!=null){
+         classeCSS.add(p);
+         p=p.getParentStyle();
+         
+       }
+       Collections.reverse(classeCSS);
+       for (OdfStyleBase odfStyleBase : classeCSS) {
+         stylesPropsToCSS(odfStyleBase.getStyleProperties(), newElement.getClassName());
+      }
+			 
+//			 while(p!=null){
+//			   if(p.getAttribute("style:name")!=null&&p.getAttribute("style:name").trim().length()>0){
+//			     newElement.setClassName(p.getAttribute("style:name").trim()+" "+newElement.getClassName());
+//			     stylesPropsToCSS(p.getStyleProperties(), p.getAttribute("style:name"));
+//			   }
+//			     p=p.getParentStyle();
+//			   
+//			 }
+//			  Object n=getXpath().evaluate("//style:style[@style:name='Body_20_Text_20_3']", getOdt().getDocumentStyles(), XPathConstants.NODE);
+//			  n=getXpath().evaluate("//style:style[@style:name='Standard']", getOdt().getDocumentStyles(), XPathConstants.NODE);
+//			  getXpath().evaluate("//style:style[@style:name='P38']", getOdt().getDocumentStyles(), XPathConstants.NODE)
 				stylesPropsToCSS(otp.getAutomaticStyle().getStyleProperties(), otp.getStyleName());
-				if(newElement!=null){
-					newElement.setClassName(otp.getStyleName());
-				}
+			
 				if(isDebugMode()){
 				  Utils.printStyleProps(otp.getAutomaticStyle()
 						.getStyleProperties());
@@ -585,7 +638,9 @@ ol.d {list-style-type:lower-alpha;}
 						String val=e.getValue();
 						if(val.equals("end")){
 						  val="right";
-						}
+						}else  if(val.equals("start")){
+              val="left";
+            }
 				rule.set(e.getKey().getName().getLocalName(), new CSSName(val));
 			}else if(e.getKey().getName().getLocalName().equals("font-name")){
 				SelectorRule rule= getStylesheet().getRuleForSelector(
