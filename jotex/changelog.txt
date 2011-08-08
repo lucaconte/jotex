@@ -6,9 +6,11 @@ Project URL:
 http://code.google.com/p/jotex
 
 ------------------------------------------------------------------------------
- 0.3.30 - 08/Aug/2011
+ 0.3.37 - 08/Aug/2011
 ------------------------------------------------------------------------------
- - bugs fixing release
+ - Multi CSS classes support (flat mode): epub documents' styles are more
+   closer to original odt's styles 
+ - bugs fixing 
 
 ------------------------------------------------------------------------------
  0.3.30 - 29/Jul/2011
