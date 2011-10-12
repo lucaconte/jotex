@@ -119,8 +119,7 @@ public class CommandLineLauncher {
                                  .create("s") );
     
     options.addOption( OptionBuilder.withLongOpt( "fem" )
-        .withDescription( "Fonts Encriptyon Method. Fonts need, for licensing reasons, to be encrypted.\r\n" +
-        		" Two encryption methods are supported \"adobe\" and \"idpf\" NO PLAIN Fonts embeddind is supported by jotex" )
+        .withDescription( "Fonts Encriptyon Method. Fonts need, for licensing reasons, to be encrypted.\r\n" )
         .hasArg()
         .withArgName("adobe|idpf")
         .withType(Integer.class)
