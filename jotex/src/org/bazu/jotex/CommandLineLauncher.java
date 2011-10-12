@@ -119,7 +119,7 @@ public class CommandLineLauncher {
                                  .create("s") );
     
     options.addOption( OptionBuilder.withLongOpt( "fem" )
-        .withDescription( "Fonts Encriptyon Method. Fonts need, for licensing reasons, to be encrypted.\r\n" )
+        .withDescription( "Fonts Encriptyon Method. Used if, for licensing reasons, fonts need to be encrypted.\r\n" )
         .hasArg()
         .withArgName("adobe|idpf")
         .withType(Integer.class)
