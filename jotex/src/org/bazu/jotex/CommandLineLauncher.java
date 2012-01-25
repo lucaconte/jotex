@@ -73,7 +73,17 @@ public class CommandLineLauncher {
      }
      
      if(line.hasOption("f")){
-      op.setFontsPath(line.getOptionValue("f"));
+         op.setFontsPath(line.getOptionValue("f"));
+     }
+     
+     if(line.hasOption("c")){
+         op.setCoverPath(line.getOptionValue("c"));
+     }
+     
+     if(line.hasOption("b")){
+         op.setExposeBookmarks(true);
+     }else{
+         op.setExposeBookmarks(false);
      }
    } catch (ParseException e1) {
      e1.printStackTrace();
@@ -108,6 +118,7 @@ public class CommandLineLauncher {
     Options options = new Options();
    options.addOption( "h", "help", false, "Print Jotex comman line help" );
    options.addOption( "d", false, "Enable debug mode" );
+   options.addOption( "b", false, "Expose bookmarks (if presents) in alphabetical order,  at the end of the TOC" );
    // options.addOption( "A", "almost-all", false, "do not list implied . and .." );
    // options.addOption( "b", "escape", false, "print octal escapes for nongraphic "
  //                                         + "characters" );
@@ -130,7 +141,7 @@ public class CommandLineLauncher {
         		"Without this param NO FONT will be included into the epub" )
         .hasArg()
         .withArgName("FONTS_PATH")
-        .withType(Integer.class)
+        //.withType(Integer.class)
         .create("f") );
     
     options.addOption( OptionBuilder.withLongOpt( "output" )
@@ -138,6 +149,12 @@ public class CommandLineLauncher {
         .hasArg()
         .withArgName("OUTPUT_FILE")
         .create("o") );
+    
+    options.addOption( OptionBuilder.withLongOpt( "cover" )
+            .withDescription( "Full path to the epub cover (gif or jpg or png). If not present no cover will be used" )
+            .hasArg()
+            .withArgName("COVER_IMG_FILE")
+            .create("c") );
 //    options.addOption( "B", "ignore-backups", false, "do not list implied entried "
 //                                                  + "ending with ~");
 //    options.addOption( "c", false, "with -lt: sort by, and show, ctime (time of last " 

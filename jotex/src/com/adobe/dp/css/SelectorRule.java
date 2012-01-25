@@ -21,5 +21,11 @@ public class SelectorRule extends BaseRule {
 		serializeProperties(out, true);
 		out.println("}");
 	}
+	
+	public Selector[] getSelectors(){
+	    return selectors;
+	    
+	}
+	
 
 }

@@ -29,9 +29,11 @@
  */
 package org.bazu.jotex;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -108,6 +110,7 @@ import com.adobe.dp.epub.ops.ImageElement;
 import com.adobe.dp.epub.style.Stylesheet;
 import com.adobe.dp.epub.util.TOCLevel;
 import com.adobe.dp.otf.FontLocator;
+import com.adobe.dp.xml.util.StringUtil;
 
 public class OdtEPUBlisher {
     // config fields
@@ -123,9 +126,16 @@ public class OdtEPUBlisher {
     private StyleResource _styleResource;
     private OPSResource currentResource;
     private OPSResource footnotesResource;
+    private OPSResource coverResource;
     private XPath xpath;
 
     private String fontsPath;
+    private String coverPath;
+    private boolean _hasFootnotes=false;
+    private boolean exposeBookmarks;
+
+
+
 
     private int maxFilesSize = 0;
 
@@ -189,19 +199,51 @@ public class OdtEPUBlisher {
 
         Utils.processMetadata(getOdt().getMetaDom(), getEpub(), getXpath());
 
-        createNewResource();
-        int pi = 0;
+
         // stylesPropsToCSS( getOdtDocument().getDocumentStyles().get,
         // className)
         // System.out.println(getOdtDocument().getDocumentStyles());
         extractDefaultStyles(getOdt().getDocumentStyles());
 
+        if(getCoverPath()!=null&&getCoverPath().trim().length()>0){//a cover will be processed
+            
+           
+            
+            File fcover=new File(getCoverPath());
+            if(fcover.exists()){
+                try {
+                    HTMLElement covelem=getCoverResource().getDocument().createElement("div");
+                   
+                    addImage(fcover.getAbsolutePath(), covelem,getCoverResource());
+                    //
+                    covelem.setClassName("cover");
+                    Selector selector = getStylesheet().getSimpleSelector("div", "cover");
+                    SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
+                    rule.set("width", new CSSName("100%"));
+                    rule.set("text-align", new CSSName("center"));
+                    getCoverResource().getDocument().getBody().add(covelem);
+                    getEpub().addToSpine(getCoverResource());
+                } catch (Exception e) {
+                    // Unable to set the cover
+                    e.printStackTrace();
+                }
+             
+            }
+            
+        }
+        createNewResource();
         traverse(getOdt().getContentDom(), null);
 
         // processURLSSession(rootTOCEntry,p);
         processInternalLinksCrossReferences();
-        setFootnotesCSSStyles();
-        getEpub().addToSpine(getFootnotesResource());
+        if(isExposeBookmarks()){
+            bookmarksToToc();
+        }
+        
+        if(_hasFootnotes){
+            setFootnotesCSSStyles();
+            getEpub().addToSpine(getFootnotesResource());
+        }
         if (getMaxFilesSize() > 0) {
             getEpub().splitLargeChapters(getMaxFilesSize() * 1024);
         }
@@ -218,6 +260,9 @@ public class OdtEPUBlisher {
         OCFContainerWriter writer = new OCFContainerWriter(new FileOutputStream(getEpubFilename()));
         getEpub().serialize(writer);
 
+        
+        //TODO: uncomment  for testing stylesheet optimization
+        //Utils.optimizeStylesheet(getStyleResource());
         if (isDebugMode()) {
             printClassesFound();
         }
@@ -327,6 +372,7 @@ public class OdtEPUBlisher {
             newElement.setClassName(otl.getStyleName());
             Selector selector = getStylesheet().getSimpleSelector(null, otl.getStyleName());
             SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
+           
             rule.set("width", new CSSName("100%"));
             selector = getStylesheet().getSimpleSelector("table", null);
             rule = getStylesheet().getRuleForSelector(selector, true);
@@ -511,6 +557,7 @@ public class OdtEPUBlisher {
     public Stylesheet getStylesheet() {
         if (_stylesheet == null) {
             _stylesheet = getStyleResource().getStylesheet();
+          
 
         }
         return _stylesheet;
@@ -572,7 +619,14 @@ public class OdtEPUBlisher {
         }
         return footnotesResource;
     }
+    protected OPSResource getCoverResource() {
+        if (coverResource == null) {
+            coverResource = getEpub().createOPSResource("OPS/cover.xhtml");
 
+            coverResource.getDocument().addStyleResource(getStyleResource());
+        }
+        return coverResource;
+    }
     public void stylesPropsToCSS(Map<OdfStyleProperty, String> props, String className) {
         stylesPropsToCSS(props, null, className);
 
@@ -649,39 +703,57 @@ public class OdtEPUBlisher {
     }
 
     protected void addImage(OdfDrawImage imgOdf, Element dstElem) {
+            
+            addImage(imgOdf.getImageUri().toString(), dstElem);
+       
+
+    }
+    protected void addImage(String imgUri, Element dstElem, OPSResource dstResource) {
         try {
 
             String mimetype = null;
             String ext = null;
-            if (imgOdf.getImageUri().toString().toUpperCase().endsWith("JPG")
-                    || imgOdf.getImageUri().toString().toUpperCase().endsWith("JPEG")) {
+            if (imgUri.toString().toUpperCase().endsWith("JPG")
+                    || imgUri.toUpperCase().endsWith("JPEG")) {
                 mimetype = "image/jpeg";
                 ext = "jpg";
-            } else if (imgOdf.getImageUri().toString().toUpperCase().endsWith("PNG")) {
+            } else if (imgUri.toUpperCase().endsWith("PNG")) {
                 mimetype = "image/png";
                 ext = "png";
-            } else if (imgOdf.getImageUri().toString().toUpperCase().endsWith("GIF")) {
+            } else if (imgUri.toUpperCase().endsWith("GIF")) {
                 mimetype = "image/gif";
                 ext = "gif";
             }
             if (mimetype != null) {
-                DataSource dataSource = new ByteArrayImageDataSource(getOdt().getPackage().getBytes(
-                        imgOdf.getImageUri().toString()));
-
-                BitmapImageResource imageResource = getEpub().createBitmapImageResource(
-                        "OPS/images/" + System.currentTimeMillis() + (Math.random() * 100) + "." + ext, mimetype,
-                        dataSource);
-                ImageElement bitmap = getCurrentResource().getDocument().createImageElement("img");
-                bitmap.setImageResource(imageResource);
-                dstElem.add(bitmap);
-
+                byte[] content=getOdt().getPackage().getBytes(
+                        imgUri);
+                if(content==null){
+                    File f=new File(imgUri);
+                    if(f.exists()){
+                        content=Utils.getBytesFromFile(f);
+                    }
+                }
+                if(content!=null){
+                    DataSource dataSource = new ByteArrayImageDataSource(content);
+    
+                    BitmapImageResource imageResource = getEpub().createBitmapImageResource(
+                            "OPS/images/" + System.currentTimeMillis() + (Math.random() * 100) + "." + ext, mimetype,
+                            dataSource);
+                    ImageElement bitmap = dstResource.getDocument().createImageElement("img");
+                    bitmap.setImageResource(imageResource);
+                    dstElem.add(bitmap);
+                }
             }
         } catch (Exception e2) {
             e2.printStackTrace();
         }
 
     }
+    protected void addImage(String imgUri, Element dstElem) {
+        addImage(imgUri, dstElem,  getCurrentResource());
 
+    }
+    
     protected Element addFootnote(TextNoteElement e, Element dstElem) throws Exception {
 
         TextNoteCitationElement noteCit = (TextNoteCitationElement) getXpath().evaluate(".//text:note-citation", e,
@@ -721,6 +793,7 @@ public class OdtEPUBlisher {
         dst.add(ar);
 
         setCurrentResource(temp);
+        _hasFootnotes=true;
         return fn;
     }
 
@@ -863,6 +936,8 @@ public class OdtEPUBlisher {
                 Utils.printStyleProps(ds.getStyleProperties());
             }
         }
+
+        
         Selector selector = getStylesheet().getSimpleSelector("body", null);
         SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
         CSSValue minh = rule.get("font-size");
@@ -878,6 +953,7 @@ public class OdtEPUBlisher {
         if (minh != null) {
             rule.set("min-height", minh);
         }
+
     }
 
     public XPath getXpath() {
@@ -917,6 +993,24 @@ public class OdtEPUBlisher {
         }
 
     }
+    
+    protected void  bookmarksToToc(){
+        if(getBookmarks().size()>0){
+            List<String> bl=new ArrayList();
+            for (String e : getBookmarks().keySet()) {
+                bl.add(e);
+            }
+            Collections.sort(bl);
+            
+            addTocEntry("Bookmarks", 0, getBookmarks().get(bl.get(0)));
+            
+            for (String k : bl) {
+                Element el=getBookmarks().get(k);
+                addTocEntry(el.getId(), 1, el);
+            }
+           
+        }
+    }
 
     private void printClassesFound() {
         for (String s : classesForDebug) {
@@ -947,5 +1041,19 @@ public class OdtEPUBlisher {
     public void setFontsPath(String fontsPath) {
         this.fontsPath = fontsPath;
     }
+    
+    public String getCoverPath() {
+        return coverPath;
+    }
 
+    public void setCoverPath(String coverPath) {
+        this.coverPath = coverPath;
+    }
+    public boolean isExposeBookmarks() {
+        return exposeBookmarks;
+    }
+
+    public void setExposeBookmarks(boolean exposeBookmarks) {
+        this.exposeBookmarks = exposeBookmarks;
+    }
 }

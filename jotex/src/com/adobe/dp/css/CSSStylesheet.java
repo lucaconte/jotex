@@ -1,8 +1,11 @@
 package com.adobe.dp.css;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 public class CSSStylesheet {
@@ -19,7 +22,21 @@ public class CSSStylesheet {
 		}
 		statements.add(rule);
 	}
-
+    public void removeRule(SelectorRule rule) {
+       
+            statements.remove(rule);
+            List<Selector> toremove=new ArrayList<Selector>();
+                for (Iterator iterator = rulesBySelector.entrySet().iterator(); iterator.hasNext();) {
+                    Entry e = (Entry) iterator.next();
+                    if(e.getValue().equals(rule)){
+                        toremove.add((Selector) e.getKey());
+                    }
+                }
+            
+            for (Selector selector : toremove) {
+                rulesBySelector.remove(selector);
+            }
+    }
 	public Selector getSimpleSelector(String elementName, String className) {
 		NamedElementSelector elementSelector = null;
 		if (elementName != null)
@@ -42,6 +59,7 @@ public class CSSStylesheet {
 		return rule;
 	}
 
+	
 	public void serialize(PrintWriter out) {
 		Iterator list = statements.iterator();
 		while (list.hasNext()) {
