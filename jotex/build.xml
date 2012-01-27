@@ -3,7 +3,7 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-    	 <property name="jotex.version" value="0.3.43"/>
+    	 <property name="jotex.version" value="0.3.46"/>
     	<mkdir dir="./bin"/>
     	<javac srcdir="./src" destdir="./bin" debug="on" source="1.5" target="1.5" encoding = "utf-8">
     		<classpath>
