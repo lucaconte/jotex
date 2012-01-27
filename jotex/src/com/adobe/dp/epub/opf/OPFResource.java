@@ -290,7 +290,10 @@ public class OPFResource extends Resource {
 		it = epub.spine();
 		while (it.hasNext()) {
 			Resource r = (Resource) it.next();
-			attrs = new SMapImpl();
+			attrs=r.getSerializationAttributes();
+			if(attrs==null){
+				attrs = new SMapImpl();
+			}
 			attrs.put(null, "idref", epub.assignId(r));
 			ser.startElement(opfns, "itemref", attrs, false);
 			ser.endElement(opfns, "itemref");

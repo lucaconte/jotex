@@ -159,6 +159,8 @@ public class Utils {
         if (metaInfo != null) {
             epub.addDCMetadata("subject", metaInfo.getTextContent(), null);
         }
+        
+     
     }
     
     /**

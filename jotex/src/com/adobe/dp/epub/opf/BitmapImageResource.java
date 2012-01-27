@@ -47,4 +47,6 @@ public class BitmapImageResource extends Resource {
 	public boolean canCompress() {
 		return false;
 	}
+	
+
 }

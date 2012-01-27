@@ -889,7 +889,7 @@ public class Publication {
 			String name = (String) names.nextElement();
 			Resource res = (Resource) resourcesByName.get(name);
 			if (res instanceof FontResource && !useNOFontMangling) {
-			  //TODO: FONTS commented for exporting font as are don't cara about licensing
+			  //TODO: FONTS commented for exporting font as are don't care about licensing
 				needEnc = true;
 			}
 			OutputStream out = container.getOutputStream(name, res.canCompress());

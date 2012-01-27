@@ -102,6 +102,7 @@ import com.adobe.dp.epub.opf.BitmapImageResource;
 import com.adobe.dp.epub.opf.NCXResource;
 import com.adobe.dp.epub.opf.OPSResource;
 import com.adobe.dp.epub.opf.Publication;
+import com.adobe.dp.epub.opf.Resource;
 import com.adobe.dp.epub.opf.StyleResource;
 import com.adobe.dp.epub.ops.Element;
 import com.adobe.dp.epub.ops.HTMLElement;
@@ -214,15 +215,21 @@ public class OdtEPUBlisher {
                 try {
                     HTMLElement covelem=getCoverResource().getDocument().createElement("div");
                    
-                    addImage(fcover.getAbsolutePath(), covelem,getCoverResource());
-                    //
-                    covelem.setClassName("cover");
-                    Selector selector = getStylesheet().getSimpleSelector("div", "cover");
-                    SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
-                    rule.set("width", new CSSName("100%"));
-                    rule.set("text-align", new CSSName("center"));
-                    getCoverResource().getDocument().getBody().add(covelem);
-                    getEpub().addToSpine(getCoverResource());
+                    Resource r=addImage(fcover.getAbsolutePath(), covelem,getCoverResource());
+                    if(r!=null){
+                    	r.setId("cover-image");
+	                    getEpub().addMetadata(null, "cover", "cover-image");
+	                    //
+	                    covelem.setClassName("cover");
+	                    Selector selector = getStylesheet().getSimpleSelector("div", "cover");
+	                    SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
+	                    rule.set("width", new CSSName("100%"));
+	                    rule.set("text-align", new CSSName("center"));
+	                    getCoverResource().getDocument().getBody().add(covelem);
+	                    //TODO: uncomment the following row for best practies. But doing this some readers put the cover at the epub's end and not at the epub's beginning 
+	                    //getCoverResource().putSerializationAttribute(null, "linear", "no");
+	                    getEpub().addToSpine(getCoverResource());
+                    }
                 } catch (Exception e) {
                     // Unable to set the cover
                     e.printStackTrace();
@@ -708,7 +715,7 @@ public class OdtEPUBlisher {
        
 
     }
-    protected void addImage(String imgUri, Element dstElem, OPSResource dstResource) {
+    protected BitmapImageResource addImage(String imgUri, Element dstElem, OPSResource dstResource) {
         try {
 
             String mimetype = null;
@@ -741,12 +748,17 @@ public class OdtEPUBlisher {
                             dataSource);
                     ImageElement bitmap = dstResource.getDocument().createImageElement("img");
                     bitmap.setImageResource(imageResource);
+                    
                     dstElem.add(bitmap);
+                    
+                    return imageResource;
                 }
             }
         } catch (Exception e2) {
             e2.printStackTrace();
         }
+        
+        return null;
 
     }
     protected void addImage(String imgUri, Element dstElem) {

@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.adobe.dp.epub.io.DataSource;
+import com.adobe.dp.xml.util.SMapImpl;
 
 /**
  * This class represents an arbitrary resource in a Publication. Typically one
@@ -51,7 +52,9 @@ public class Resource {
 	DataSource source;
 
 	Publication epub;
-
+	
+	private SMapImpl serializationAttributes;
+	
 	Resource(Publication epub, String name, String type, DataSource source) {
 		this.epub = epub;
 		this.mediaType = type;
@@ -165,5 +168,27 @@ public class Resource {
 
 	public Publication getPublication() {
 		return epub;
+	}
+	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public SMapImpl getSerializationAttributes() {
+		return serializationAttributes;
+	}
+
+
+	
+	public void  putSerializationAttribute(String ns, String name, Object value){
+		if(serializationAttributes==null){
+			serializationAttributes=new SMapImpl();
+		}
+		serializationAttributes.put(ns, name, value);
+		
 	}
 }
