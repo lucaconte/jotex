@@ -39,7 +39,15 @@ public class CommandLineLauncher {
  public static void main(String[] args) {
    OdtEPUBlisher op=new OdtEPUBlisher();
    CommandLineLauncher cl=new CommandLineLauncher();
-   op.setOdtFilename(args[args.length-1]);
+   if(args.length==0||!args[args.length-1].toUpperCase().endsWith(".ODT")){
+	     HelpFormatter formatter = new HelpFormatter();
+	     formatter.printHelp( "java -jar jotex<VERSION>.jar [<OPTIONS>] <FILE_NAME>.odt", CommandLineLauncher.getOptionsInstance() );
+	     System.exit(1);
+	   }
+	   
+	   op.setOdtFilename(args[args.length-1]);
+   
+  
    try {
      CommandLine line = cl.getParser().parse( cl.getOptions(), args );
      
@@ -90,13 +98,7 @@ public class CommandLineLauncher {
      System.out.println("Bad input oprions");
    }
    
-   if(args.length==0||!args[args.length-1].toUpperCase().endsWith(".ODT")){
-     HelpFormatter formatter = new HelpFormatter();
-     formatter.printHelp( "java -jar jotex<VERSION>.jar [<OPTIONS>] <FILE_NAME>.odt", CommandLineLauncher.getOptionsInstance() );
-     System.exit(1);
-   }
-   
-   
+
    System.out.println("Exporting process of \""+args[args.length-1]+"\" STARTED at "+new Date());
    
  

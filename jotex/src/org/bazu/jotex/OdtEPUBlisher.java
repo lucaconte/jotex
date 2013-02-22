@@ -330,11 +330,14 @@ public class OdtEPUBlisher {
             skipChildren = true;
         } else if (e instanceof OdfDrawFrame) {
             OdfDrawFrame dframe = (OdfDrawFrame) e;
+        // if(!(dframe.getParentNode().getParentNode() instanceof DrawTextBoxElement)){
             // here can be captured resize options
+            newElement = addImageBox(dframe, dstElement);
+         //}
 
         } else if (e instanceof DrawTextBoxElement) {
             DrawTextBoxElement didascalia = (DrawTextBoxElement) e;
-            newElement = addImageBox(didascalia, dstElement);
+        
 
         } else if (e instanceof OdfDrawImage) {
             addImage((OdfDrawImage) e, dstElement);
@@ -690,22 +693,37 @@ public class OdtEPUBlisher {
                 SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
 
                 rule.set(e.getKey().getName().getLocalName(), new CSSName(e.getValue()));
+            }else if (e.getKey().getName().getLocalName().equals("horizontal-pos")) {//for images
+                SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
+                String pos="center";
+                if(e.getValue().contains("left")){
+                	pos="left";
+                }else if(e.getValue().contains("right")){
+                	pos="right";
+                }
+               // rule.set("text-align", new CSSName(pos));
             }
+            
+            
 
         }
 
     }
 
-    protected Element addImageBox(DrawTextBoxElement box, Element dstElem) {
-        Selector selector = getStylesheet().getSimpleSelector(null, "imgDiv");
+    protected Element addImageBox(OdfDrawFrame box, Element dstElem) {
+       
+    	
+    	
+    	
+        Selector selector = getStylesheet().getSimpleSelector(null, box.getStyleName());
         SelectorRule rule = getStylesheet().getRuleForSelector(selector, true);
         rule.set("width", new CSSName("100%"));
+
         rule.set("text-align", new CSSName("center"));
-
         Element idiv = getFootnotesResource().getDocument().createElement("div");
-        idiv.setClassName("imgDiv");
-        getCurrentResource().getDocument().getBody().add(idiv);
-
+        idiv.setClassName(box.getStyleName());
+        stylesPropsToCSS(box.getAutomaticStyle().getStyleProperties(), idiv.getClassName());
+        dstElem.add(idiv);
         return idiv;
     }
 
