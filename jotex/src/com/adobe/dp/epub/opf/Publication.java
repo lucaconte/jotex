@@ -107,9 +107,7 @@ public class Publication {
 	
 	boolean useNOFontMangling = false;
 
-
-
-  Hashtable resourcesByName = new Hashtable();
+	Hashtable resourcesByName = new Hashtable();
 
 	Hashtable resourceRefsByName = new Hashtable();
 
@@ -264,7 +262,7 @@ public class Publication {
 	 */
 	public void useAdobeFontMangling() {
 		useIDPFFontMangling = false;
-	  useNOFontMangling=false;
+	  	useNOFontMangling=false;
 	}
 
 	/**

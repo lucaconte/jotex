@@ -147,13 +147,11 @@ public class OdtEPUBlisher {
 
     public static NamespaceContext XPATH_ODT_NS_CTX = new NamespaceContext() {
 
-        @Override
         public Iterator getPrefixes(String namespaceURI) {
             // fo=urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0
             return null;
         }
 
-        @Override
         public String getPrefix(String namespaceURI) {
             if (namespaceURI.equals("urn:oasis:names:tc:opendocument:xmlns:drawing:1.0")) {
                 return "draw";
@@ -170,7 +168,6 @@ public class OdtEPUBlisher {
             return null;
         }
 
-        @Override
         public String getNamespaceURI(String prefix) {
             if (prefix.equals("draw")) {
                 return "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0";

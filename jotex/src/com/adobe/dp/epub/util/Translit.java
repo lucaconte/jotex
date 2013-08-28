@@ -5,14 +5,14 @@
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
  *
- * Â·        Redistributions of source code must retain the above copyright 
+ * ·        Redistributions of source code must retain the above copyright 
  *          notice, this list of conditions and the following disclaimer. 
  *
- * Â·        Redistributions in binary form must reproduce the above copyright 
+ * ·        Redistributions in binary form must reproduce the above copyright 
  *		   notice, this list of conditions and the following disclaimer in the
  *		   documentation and/or other materials provided with the distribution. 
  *
- * Â·        Neither the name of Adobe Systems Incorporated nor the names of its 
+ * ·        Neither the name of Adobe Systems Incorporated nor the names of its 
  *		   contributors may be used to endorse or promote products derived from
  *		   this software without specific prior written permission. 
  * 
@@ -30,7 +30,6 @@
 
 package com.adobe.dp.epub.util;
 
-
 import java.util.Hashtable;
 
 public class Translit {
@@ -43,7 +42,6 @@ public class Translit {
 
 	final static Hashtable map = makeTranslitMap();
 
-	
 	private static Hashtable makeTranslitMap() {
 		Hashtable map = new Hashtable();
 		map.put(new Character('а'), "a");
@@ -83,7 +81,6 @@ public class Translit {
 		map.put(new Character('»'), "\"");
 		map.put(new Character('№'), "No");
 		return map;
-
 	}
 
 	private static int charClass(char c) {

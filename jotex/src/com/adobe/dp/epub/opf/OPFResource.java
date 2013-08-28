@@ -219,7 +219,6 @@ public class OPFResource extends Resource {
 		attrs.put(null, "unique-identifier", "bookid");
 		ser.startElement(opfns, "package", attrs, true);
 		ser.newLine();
-		
 		ser.startElement(opfns, "metadata", null, false);
 		ser.newLine();
 		Iterator it = epub.metadata.iterator();
@@ -227,6 +226,7 @@ public class OPFResource extends Resource {
 		while (it.hasNext()) {
 			Publication.SimpleMetadata item = (Publication.SimpleMetadata) it.next();
 			if (item.ns != null && item.ns.equals(dcns) && item.name.equals("identifier")) {
+				//[LC] improved: added the possibility to control from the outside de UUID
 				attrs =(SMapImpl) item.attribs;
 				if(attrs==null){
 					attrs = new SMapImpl();
@@ -252,8 +252,7 @@ public class OPFResource extends Resource {
 				ser.endElement(opfns, "meta");
 				ser.newLine();
 			} else {
-				
-				ser.startElement(item.ns, item.name, item.attribs, false);
+				ser.startElement(item.ns, item.name, attrs, false);
 				char[] arr = value.toCharArray();
 				ser.text(arr, 0, arr.length);
 				ser.endElement(item.ns, item.name);
@@ -261,7 +260,6 @@ public class OPFResource extends Resource {
 			}
 		}
 		ser.endElement(opfns, "metadata");
-		
 		ser.newLine();
 		ser.startElement(opfns, "manifest", null, false);
 		ser.newLine();
@@ -290,6 +288,7 @@ public class OPFResource extends Resource {
 		it = epub.spine();
 		while (it.hasNext()) {
 			Resource r = (Resource) it.next();
+		    //[LC] improved: added the possibility to control from the outside de UUID			
 			attrs=r.getSerializationAttributes();
 			if(attrs==null){
 				attrs = new SMapImpl();

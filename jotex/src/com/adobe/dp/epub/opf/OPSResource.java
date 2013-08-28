@@ -92,6 +92,4 @@ public class OPSResource extends Resource {
 		document = new OPSDocument(this);
 		document.load(data);
 	}
-	
-	
 }

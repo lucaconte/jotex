@@ -168,47 +168,47 @@ public class Utils {
      *Not yet completed 
      *TODO: to complete
      */
-    public static void optimizeStylesheet(StyleResource cssResource) {
-              
-            Map<String, List<Selector>> cssCache=new HashMap<String, List<Selector>>();
-            List<SelectorRule> toRemove=new ArrayList<SelectorRule>();
-            Iterator list = cssResource.getStylesheet().getCSS().statements();
-            while (list.hasNext()) {
-                Object stmt = list.next();
-                if (stmt instanceof BaseRule) {
-                    SelectorRule sr=(SelectorRule) stmt;
-                    toRemove.add(sr);
-                    StringWriter sw=new StringWriter();
-                  
-                    
-                    PrintWriter pw=new PrintWriter(sw);
-                    sr.serializeProperties(pw, true);
-                    pw.flush();
-                    
-                    List<Selector> l=cssCache.get(sw.toString());
-                    if(l==null){
-                        l=new ArrayList<Selector>();
-                        cssCache.put(sw.toString(), l);
-                    }
-                   l.addAll(Arrays.asList(sr.getSelectors()) );
-                    
-               
-                }
-            }
-            for (SelectorRule selectorRule : toRemove) {
-                cssResource.getStylesheet().getCSS().removeRule(selectorRule);
-            }
-           for (Entry<String, List<Selector>> s : cssCache.entrySet()) {
-               for (Selector sel : s.getValue()) {
-                System.out.println("----SELETTORI----");
-              //  System.out.println(sel.s);
-               }
-               System.out.println(s);
-           }
-          
-            
-            
-    }
+//    public static void optimizeStylesheet(StyleResource cssResource) {
+//              
+//            Map<String, List<Selector>> cssCache=new HashMap<String, List<Selector>>();
+//            List<SelectorRule> toRemove=new ArrayList<SelectorRule>();
+//            Iterator list = cssResource.getStylesheet().getCSS().statements();
+//            while (list.hasNext()) {
+//                Object stmt = list.next();
+//                if (stmt instanceof BaseRule) {
+//                    SelectorRule sr=(SelectorRule) stmt;
+//                    toRemove.add(sr);
+//                    StringWriter sw=new StringWriter();
+//                  
+//                    
+//                    PrintWriter pw=new PrintWriter(sw);
+//                    sr.serializeProperties(pw, true);
+//                    pw.flush();
+//                    
+//                    List<Selector> l=cssCache.get(sw.toString());
+//                    if(l==null){
+//                        l=new ArrayList<Selector>();
+//                        cssCache.put(sw.toString(), l);
+//                    }
+//                   l.addAll(Arrays.asList(sr.getSelectors()) );
+//                    
+//               
+//                }
+//            }
+//            for (SelectorRule selectorRule : toRemove) {
+//                cssResource.getStylesheet().getCSS().removeRule(selectorRule);
+//            }
+//           for (Entry<String, List<Selector>> s : cssCache.entrySet()) {
+//               for (Selector sel : s.getValue()) {
+//                System.out.println("----SELETTORI----");
+//              //  System.out.println(sel.s);
+//               }
+//               System.out.println(s);
+//           }
+//          
+//            
+//            
+//    }
 
     public static void printStyleProps(Map<OdfStyleProperty, String> props) {
         for (Entry<OdfStyleProperty, String> e : props.entrySet()) {
